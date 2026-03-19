@@ -11,6 +11,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(TeacherSeeder::class);
+
         // Create standards STD 1 to STD 7
         $standards = [
             ['name' => 'STD 1', 'term_one_fee' => 15000, 'term_two_fee' => 15000],

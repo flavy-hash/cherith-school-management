@@ -10,6 +10,7 @@ class TeacherSubject extends Model
     protected $fillable = [
         'user_id',
         'subject_id',
+        'standard_id',
     ];
 
     public function teacher(): BelongsTo
@@ -20,5 +21,10 @@ class TeacherSubject extends Model
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function standard(): BelongsTo
+    {
+        return $this->belongsTo(Standard::class);
     }
 }

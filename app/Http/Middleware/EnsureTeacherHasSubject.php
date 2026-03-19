@@ -11,10 +11,14 @@ class EnsureTeacherHasSubject
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->routeIs('filament.teacher.auth.*')) {
+            return $next($request);
+        }
+
         $user = $request->user();
 
         if (! $user) {
-            abort(401);
+            return $next($request);
         }
 
         $assignment = TeacherSubject::query()

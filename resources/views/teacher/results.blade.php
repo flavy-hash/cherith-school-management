@@ -18,7 +18,7 @@
             </div>
 
             <div>
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('teacher.logout') }}">
                     @csrf
                     <button type="submit" class="px-4 py-2 rounded bg-gray-900 text-white">Logout</button>
                 </form>
