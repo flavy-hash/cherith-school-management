@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Filament\Resources\StandardResource\Pages;
+
+use App\Filament\Resources\StandardResource;
+use Filament\Resources\Pages\ListRecords;
+
+class ListStandards extends ListRecords
+{
+    protected static string $resource = StandardResource::class;
+}
