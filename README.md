@@ -1,4 +1,4 @@
-# Cherith Junior School Management System
+#  School Management System
 
 A Laravel-based school management system with Filament panels for admin and teachers. Supports student records, payments, fees, and teacher result entry.
 
@@ -90,13 +90,4 @@ A Laravel-based school management system with Filament panels for admin and teac
 - `database/seeders/` — Seeders for initial data
 - `resources/views/` — Blade views (reports, welcome)
 
-## Contributing
 
-1. Fork the repo
-2. Create a feature branch
-3. Commit with clear messages
-4. Push and open a pull request
-
-## License
-
-This project is open-sourced software licensed under the MIT license.
