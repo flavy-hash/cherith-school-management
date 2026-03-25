@@ -3,14 +3,20 @@
 namespace App\Filament\Teacher\Resources;
 
 use App\Filament\Teacher\Resources\StudentResource\Pages\ListStudents;
+use App\Models\Standard;
 use App\Models\Student;
 use App\Models\StudentResult;
+use App\Models\StudentSubject;
+use App\Models\Subject;
+use App\Models\TeacherSubject;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Session;
 
 class StudentResource extends Resource
 {
@@ -25,11 +31,18 @@ class StudentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = auth()->user();
-        $standardId = $user?->teacherSubject?->standard_id;
+        $assignmentId = Session::get('teacher_active_assignment_id');
+
+        $assignment = $assignmentId ? TeacherSubject::find($assignmentId) : null;
 
         return parent::getEloquentQuery()
             ->with(['standard'])
-            ->when($standardId, fn (Builder $q) => $q->where('standard_id', $standardId));
+            ->when($assignment, function (Builder $q, TeacherSubject $assignment) {
+                $q->whereHas('studentSubjects', function (Builder $sub) use ($assignment) {
+                    $sub->where('subject_id', $assignment->subject_id)
+                        ->when($assignment->standard_id, fn (Builder $sq) => $sq->where('standard_id', $assignment->standard_id));
+                });
+            });
     }
 
     public static function table(Table $table): Table
@@ -66,18 +79,17 @@ class StudentResource extends Resource
                 \Filament\Actions\Action::make('score')
                     ->label('Enter / Update Score')
                     ->icon('heroicon-o-pencil-square')
-                    ->form(function (Student $record): array {
-                        $user = auth()->user();
-                        $subjectId = $user?->teacherSubject?->subject_id;
+                    ->form(function (Student $record) {
+                        $assignment = static::getActiveAssignment();
 
-                        $term = request()->query('term', 'term_one');
-                        $year = (int) request()->query('year', date('Y'));
+                        $term = now()->quarter <= 4 ? 'term_one' : 'term_two';
+                        $year = now()->year;
 
                         $existingScore = null;
-                        if ($subjectId) {
+                        if ($assignment) {
                             $existingScore = StudentResult::query()
                                 ->where('student_id', $record->id)
-                                ->where('subject_id', $subjectId)
+                                ->where('subject_id', $assignment->subject_id)
                                 ->where('term', $term)
                                 ->where('year', $year)
                                 ->value('score');
@@ -108,22 +120,26 @@ class StudentResource extends Resource
                         ];
                     })
                     ->action(function (Student $record, array $data): void {
-                        $user = auth()->user();
-                        $subjectId = $user?->teacherSubject?->subject_id;
+                        $assignment = static::getActiveAssignment();
 
-                        if (! $subjectId) {
-                            abort(403, 'You are not assigned to any subject.');
+                        if (! $assignment) {
+                            Notification::make()
+                                ->title('No assignment selected')
+                                ->body('Please select a class and subject first.')
+                                ->warning()
+                                ->send();
+                            return;
                         }
 
                         StudentResult::updateOrCreate(
                             [
                                 'student_id' => $record->id,
-                                'subject_id' => $subjectId,
+                                'subject_id' => $assignment->subject_id,
                                 'term' => $data['term'],
                                 'year' => (int) $data['year'],
                             ],
                             [
-                                'teacher_id' => $user->id,
+                                'teacher_id' => auth()->id(),
                                 'score' => (int) $data['score'],
                             ],
                         );
@@ -135,6 +151,53 @@ class StudentResource extends Resource
                     }),
             ])
             ->bulkActions([]);
+    }
+
+    protected static function getActiveAssignment(): ?TeacherSubject
+    {
+        $assignmentId = Session::get('teacher_active_assignment_id');
+        return $assignmentId ? TeacherSubject::find($assignmentId) : null;
+    }
+
+    public static function getHeaderActions(): array
+    {
+        $user = auth()->user();
+        $assignments = TeacherSubject::where('user_id', $user->id)
+            ->with(['subject', 'standard'])
+            ->get();
+
+        if ($assignments->isEmpty()) {
+            return [];
+        }
+
+        $active = static::getActiveAssignment();
+        $label = $active
+            ? "Class: " . ($active->standard?->name ?? 'Any') . " — Subject: " . $active->subject->name
+            : 'Select Class & Subject';
+
+        return [
+            Action::make('selectAssignment')
+                ->label($label)
+                ->icon('heroicon-o-academic-cap')
+                ->form([
+                    Forms\Components\Select::make('assignment_id')
+                        ->label('Choose your assignment')
+                        ->options(
+                            $assignments->mapWithKeys(fn (TeacherSubject $a) => [
+                                $a->id => ($a->standard?->name ?? 'Any Class') . ' — ' . $a->subject->name,
+                            ])
+                        )
+                        ->required()
+                        ->default($active?->id),
+                ])
+                ->action(function (array $data): void {
+                    Session::put('teacher_active_assignment_id', (int) $data['assignment_id']);
+                    Notification::make()
+                        ->title('Assignment selected')
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     public static function getPages(): array
