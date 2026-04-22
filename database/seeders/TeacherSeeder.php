@@ -26,7 +26,11 @@ class TeacherSeeder extends Seeder
         );
 
         TeacherSubject::updateOrCreate(
-            ['user_id' => $teacher->id],
+            [
+                'user_id' => $teacher->id,
+                'subject_id' => $subject->id,
+                'standard_id' => null,
+            ],
             ['subject_id' => $subject->id],
         );
     }
