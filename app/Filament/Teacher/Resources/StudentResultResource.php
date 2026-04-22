@@ -7,12 +7,14 @@ use App\Filament\Teacher\Resources\StudentResultResource\Pages\EditStudentResult
 use App\Filament\Teacher\Resources\StudentResultResource\Pages\ListStudentResults;
 use App\Models\Student;
 use App\Models\StudentResult;
+use App\Models\TeacherSubject;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Session;
 
 class StudentResultResource extends Resource
 {
@@ -26,11 +28,23 @@ class StudentResultResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
-        $subjectId = $user?->teacherSubject?->subject_id;
+        $userId = auth()->id();
+        $assignmentId = Session::get('teacher_active_assignment_id');
+        $assignment = $assignmentId ? TeacherSubject::find($assignmentId) : null;
+
+        if (! $assignment && $userId) {
+            $assignment = TeacherSubject::query()
+                ->where('user_id', $userId)
+                ->orderBy('id')
+                ->first();
+
+            if ($assignment) {
+                Session::put('teacher_active_assignment_id', (int) $assignment->id);
+            }
+        }
 
         return parent::getEloquentQuery()
-            ->when($subjectId, fn (Builder $q) => $q->where('subject_id', $subjectId));
+            ->when($assignment, fn (Builder $q) => $q->where('subject_id', $assignment->subject_id));
     }
 
     public static function form(Schema $schema): Schema
