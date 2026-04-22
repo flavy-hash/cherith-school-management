@@ -40,6 +40,11 @@ class Student extends Model
         });
     }
 
+    public function studentSubjects(): HasMany
+    {
+        return $this->hasMany(StudentSubject::class);
+    }
+
     public static function generateAdmissionNumber(int $standardId, string $firstName, string $lastName, ?int $ignoreStudentId = null): string
     {
         $standard = Standard::find($standardId);
