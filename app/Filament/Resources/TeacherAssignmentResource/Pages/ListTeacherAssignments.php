@@ -58,7 +58,11 @@ class ListTeacherAssignments extends ListRecords
                     ]);
 
                     TeacherSubject::updateOrCreate(
-                        ['user_id' => $teacher->id],
+                        [
+                            'user_id' => $teacher->id,
+                            'subject_id' => (int) $data['subject_id'],
+                            'standard_id' => $data['standard_id'] ? (int) $data['standard_id'] : null,
+                        ],
                         [
                             'subject_id' => (int) $data['subject_id'],
                             'standard_id' => $data['standard_id'] ? (int) $data['standard_id'] : null,
