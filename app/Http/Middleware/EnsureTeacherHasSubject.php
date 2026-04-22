@@ -23,6 +23,7 @@ class EnsureTeacherHasSubject
 
         $assignment = TeacherSubject::query()
             ->where('user_id', $user->id)
+            ->orderBy('id')
             ->first();
 
         if (! $assignment) {
