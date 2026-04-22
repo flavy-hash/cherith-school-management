@@ -38,9 +38,28 @@ class StudentResource extends Resource
         return parent::getEloquentQuery()
             ->with(['standard'])
             ->when($assignment, function (Builder $q, TeacherSubject $assignment) {
+                if ($assignment->standard_id) {
+                    $hasEnrollments = StudentSubject::query()
+                        ->where('subject_id', $assignment->subject_id)
+                        ->where('standard_id', $assignment->standard_id)
+                        ->exists();
+
+                    if ($hasEnrollments) {
+                        $q->whereHas('studentSubjects', function (Builder $sub) use ($assignment) {
+                            $sub->where('subject_id', $assignment->subject_id)
+                                ->where('standard_id', $assignment->standard_id);
+                        });
+
+                        return;
+                    }
+
+                    $q->where('standard_id', $assignment->standard_id);
+
+                    return;
+                }
+
                 $q->whereHas('studentSubjects', function (Builder $sub) use ($assignment) {
-                    $sub->where('subject_id', $assignment->subject_id)
-                        ->when($assignment->standard_id, fn (Builder $sq) => $sq->where('standard_id', $assignment->standard_id));
+                    $sub->where('subject_id', $assignment->subject_id);
                 });
             });
     }
@@ -79,14 +98,14 @@ class StudentResource extends Resource
                 \Filament\Actions\Action::make('score')
                     ->label('Enter / Update Score')
                     ->icon('heroicon-o-pencil-square')
-                    ->form(function (Student $record) {
+                    ->form(function (?Student $record) {
                         $assignment = static::getActiveAssignment();
 
                         $term = now()->quarter <= 4 ? 'term_one' : 'term_two';
                         $year = now()->year;
 
                         $existingScore = null;
-                        if ($assignment) {
+                        if ($record && $assignment) {
                             $existingScore = StudentResult::query()
                                 ->where('student_id', $record->id)
                                 ->where('subject_id', $assignment->subject_id)
@@ -155,8 +174,28 @@ class StudentResource extends Resource
 
     protected static function getActiveAssignment(): ?TeacherSubject
     {
+        $userId = auth()->id();
+        if (! $userId) {
+            return null;
+        }
+
         $assignmentId = Session::get('teacher_active_assignment_id');
-        return $assignmentId ? TeacherSubject::find($assignmentId) : null;
+        $assignment = $assignmentId ? TeacherSubject::find($assignmentId) : null;
+
+        if ($assignment) {
+            return $assignment;
+        }
+
+        $assignment = TeacherSubject::query()
+            ->where('user_id', $userId)
+            ->orderBy('id')
+            ->first();
+
+        if ($assignment) {
+            Session::put('teacher_active_assignment_id', (int) $assignment->id);
+        }
+
+        return $assignment;
     }
 
     public static function getHeaderActions(): array
