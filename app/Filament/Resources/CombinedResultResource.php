@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CombinedResultResource\Pages\ListCombinedResults;
+use App\Filament\Resources\CombinedResultResource\Pages\ClassCombinedReport;
 use App\Models\Standard;
 use App\Models\Student;
 use App\Models\StudentResult;
@@ -111,6 +112,7 @@ class CombinedResultResource extends Resource
     {
         return [
             'index' => ListCombinedResults::route('/'),
+            'class-report' => ClassCombinedReport::route('/class-report'),
         ];
     }
 }
