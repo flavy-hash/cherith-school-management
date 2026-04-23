@@ -28,6 +28,11 @@ class CombinedResultResource extends Resource
 
     protected static ?string $modelLabel = 'Result';
 
+    public static function getNavigationUrl(): string
+    {
+        return static::getUrl('class-report');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([]);
