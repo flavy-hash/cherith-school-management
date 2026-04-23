@@ -87,7 +87,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
                         $this->standardId = $state !== null ? (int) $state : null;
                         $this->updateMetrics();
                         $this->resetPage();
-                        $this->flushCachedTableRecords();
+                        $this->resetTable();
                     }),
 
                 Select::make('term')
@@ -102,7 +102,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
                         $this->term = (string) $state;
                         $this->updateMetrics();
                         $this->resetPage();
-                        $this->flushCachedTableRecords();
+                        $this->resetTable();
                     }),
 
                 TextInput::make('year')
@@ -169,7 +169,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->getTableQuery())
+            ->query(fn (): Builder => $this->getTableQuery())
             ->columns($this->getTableColumns())
             ->filters([])
             ->actions([])
