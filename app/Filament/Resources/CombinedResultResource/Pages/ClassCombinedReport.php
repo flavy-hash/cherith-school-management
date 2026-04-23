@@ -83,6 +83,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
                     ->preload()
                     ->live()
                     ->afterStateUpdated(function ($state): void {
+                        $this->data['standardId'] = $state;
                         $this->standardId = $state !== null ? (int) $state : null;
                         $this->updateMetrics();
                         $this->resetPage();
@@ -97,6 +98,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
                     ])
                     ->live()
                     ->afterStateUpdated(function ($state): void {
+                        $this->data['term'] = $state;
                         $this->term = (string) $state;
                         $this->updateMetrics();
                         $this->resetPage();
@@ -110,6 +112,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
                     ->maxValue(2100)
                     ->live()
                     ->afterStateUpdated(function ($state): void {
+                        $this->data['year'] = $state;
                         $this->year = (int) $state;
                         $this->updateMetrics();
                         $this->resetTable();
@@ -128,7 +131,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
         $this->averageScore = null;
         $this->passRate = null;
 
-        
+                
         if (! $this->standardId) {
             return;
         }
