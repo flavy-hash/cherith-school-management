@@ -83,9 +83,9 @@ class CombinedResultResource extends Resource
 
                 Tables\Filters\SelectFilter::make('term')
                     ->options([
-                        '1' => 'Term 1',
-                        '2' => 'Term 2',
-                        '3' => 'Term 3',
+                        'term_one' => 'Term One',
+                        'term_two' => 'Term Two',
+                        'term_three' => 'Term Three',
                     ]),
 
                 Tables\Filters\SelectFilter::make('year')
