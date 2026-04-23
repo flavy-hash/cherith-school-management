@@ -71,17 +71,9 @@ class CombinedResultResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('standard_id')
                     ->label('Class')
-                    ->options(fn () => Standard::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->relationship('student.standard', 'name')
                     ->searchable()
-                    ->preload()
-                    ->query(function (Builder $query, array $data): Builder {
-                        $value = $data['value'] ?? null;
-
-                        return $query->when(
-                            $value,
-                            fn (Builder $query, $value): Builder => $query->where('students.standard_id', $value),
-                        );
-                    }),
+                    ->preload(),
 
                 Tables\Filters\SelectFilter::make('subject_id')
                     ->label('Subject')
