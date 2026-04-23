@@ -128,6 +128,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
         $this->averageScore = null;
         $this->passRate = null;
 
+        
         if (! $this->standardId) {
             return;
         }
@@ -196,6 +197,7 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
 
             TextColumn::make('full_name')
                 ->label('Student Name')
+                ->getStateUsing(fn (Student $record): string => $record->first_name . ' ' . $record->last_name)
                 ->sortable()
                 ->searchable(),
         ];
