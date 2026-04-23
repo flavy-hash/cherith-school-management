@@ -16,6 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -172,7 +173,16 @@ class ClassCombinedReport extends Page implements HasForms, HasTable
             ->query(fn (): Builder => $this->getTableQuery())
             ->columns($this->getTableColumns())
             ->filters([])
-            ->actions([])
+            ->actions([
+                Action::make('student_result_pdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->url(fn (Student $record): string => route('filament.admin.students.result-report', $record, [
+                        'term' => $this->term,
+                        'year' => $this->year,
+                    ]))
+                    ->openUrlInNewTab(),
+            ])
             ->bulkActions([])
             ->emptyStateHeading('No students found')
             ->emptyStateDescription('Select a class to view student results.')
